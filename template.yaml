@@ -1,0 +1,376 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: HealthVital - AI-Powered Serverless Health Monitoring Platform
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: nodejs18.x
+    Environment:
+      Variables:
+        POWERTOOLS_SERVICE_NAME: HealthVital
+        LOG_LEVEL: INFO
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+
+Resources:
+  # DynamoDB Tables
+  PatientsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'HealthVital-Patients-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: patientId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: patientId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  DeviceDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'HealthVital-DeviceData-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: deviceId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+        - AttributeName: patientId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: deviceId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: PatientIndex
+          KeySchema:
+            - AttributeName: patientId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: expirationTime
+        Enabled: true
+
+  # API Gateway
+  HealthVitalApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub 'HealthVital-API-${Environment}'
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      ThrottleConfig:
+        BurstLimit: 1000
+        RateLimit: 500
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+
+  # Cognito User Pool
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub 'HealthVital-Users-${Environment}'
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+      AutoVerifiedAttributes:
+        - email
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+        - Name: phone_number
+          AttributeDataType: String
+        - Name: given_name
+          AttributeDataType: String
+        - Name: family_name
+          AttributeDataType: String
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub 'HealthVital-Client-${Environment}'
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+        - USER_PASSWORD_AUTH
+
+  # Lambda Functions
+  PatientDataProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'HealthVital-PatientProcessor-${Environment}'
+      CodeUri: src/patient-processor/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      MemorySize: 512
+      Environment:
+        Variables:
+          PATIENTS_TABLE: !Ref PatientsTable
+          DEVICE_DATA_TABLE: !Ref DeviceDataTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PatientsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DeviceDataTable
+      Events:
+        GetPatients:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HealthVitalApi
+            Path: /patients
+            Method: GET
+        GetPatient:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HealthVitalApi
+            Path: /patients/{patientId}
+            Method: GET
+        UpdatePatient:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HealthVitalApi
+            Path: /patients/{patientId}
+            Method: PUT
+
+  AIAnalyticsProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'HealthVital-AIAnalytics-${Environment}'
+      CodeUri: src/ai-analytics/
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.11
+      MemorySize: 1024
+      Timeout: 60
+      Environment:
+        Variables:
+          PATIENTS_TABLE: !Ref PatientsTable
+          S3_BUCKET: !Ref MLModelsBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PatientsTable
+        - S3ReadPolicy:
+            BucketName: !Ref MLModelsBucket
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - sagemaker:InvokeEndpoint
+              Resource: '*'
+      Events:
+        AnalyticsRequest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HealthVitalApi
+            Path: /analytics
+            Method: POST
+
+  IoTDataIngestion:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'HealthVital-IoTIngestion-${Environment}'
+      CodeUri: src/iot-ingestion/
+      Handler: iot-handler.handler
+      Runtime: nodejs18.x
+      MemorySize: 256
+      Environment:
+        Variables:
+          DEVICE_DATA_TABLE: !Ref DeviceDataTable
+          KINESIS_STREAM: !Ref IoTDataStream
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DeviceDataTable
+        - KinesisStreamPolicy:
+            StreamName: !Ref IoTDataStream
+      Events:
+        IoTDataStream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt IoTDataStream.Arn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  NotificationService:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'HealthVital-Notifications-${Environment}'
+      CodeUri: src/notifications/
+      Handler: notifications.handler
+      Runtime: nodejs18.x
+      MemorySize: 256
+      Environment:
+        Variables:
+          ALERTS_TOPIC: !Ref AlertsTopic
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt AlertsTopic.TopicName
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: '*'
+      Events:
+        DynamoDBStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt PatientsTable.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 10
+
+  # Kinesis Data Stream for IoT
+  IoTDataStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: !Sub 'HealthVital-IoT-Stream-${Environment}'
+      ShardCount: 2
+
+  # SNS Topic for Alerts
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub 'HealthVital-Alerts-${Environment}'
+      DisplayName: HealthVital Alert Notifications
+
+  # S3 Bucket for ML Models and Static Assets
+  MLModelsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'healthvital-ml-models-${Environment}-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  StaticWebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'healthvital-website-${Environment}-${AWS::AccountId}'
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # CloudFront Distribution
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt StaticWebsiteBucket.DomainName
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOAI}'
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad  # CachingOptimized
+        PriceClass: PriceClass_100
+
+  CloudFrontOAI:
+    Type: AWS::CloudFront::OriginAccessIdentity
+    Properties:
+      OriginAccessIdentityConfig:
+        Comment: !Sub 'OAI for HealthVital ${Environment}'
+
+  # IAM Roles and Policies
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'HealthVital-Lambda-Execution-Role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      Policies:
+        - PolicyName: HealthVitalDynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource:
+                  - !GetAtt PatientsTable.Arn
+                  - !GetAtt DeviceDataTable.Arn
+                  - !Sub '${PatientsTable.Arn}/index/*'
+                  - !Sub '${DeviceDataTable.Arn}/index/*'
+
+Outputs:
+  HealthVitalApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${HealthVitalApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiUrl'
+
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolId'
+
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolClientId'
+
+  CloudFrontUrl:
+    Description: CloudFront Distribution URL
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub '${AWS::StackName}-CloudFrontUrl'
