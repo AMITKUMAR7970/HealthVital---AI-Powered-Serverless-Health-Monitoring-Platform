@@ -1,0 +1,62 @@
+Category,Component,Technology/Service,Description
+presentation,frontend_hosting,AWS Amplify,presentation component for frontend_hosting
+presentation,cdn,Amazon CloudFront,presentation component for cdn
+presentation,static_assets,Amazon S3,presentation component for static_assets
+presentation,domain_management,Route 53,presentation component for domain_management
+api_layer,api_gateway,Amazon API Gateway,api_layer component for api_gateway
+api_layer,authentication,Amazon Cognito,api_layer component for authentication
+api_layer,authorization,AWS IAM,api_layer component for authorization
+api_layer,security,AWS WAF,api_layer component for security
+compute_layer,serverless_functions,AWS Lambda,compute_layer component for serverless_functions
+compute_layer,container_services,AWS Fargate,compute_layer component for container_services
+compute_layer,orchestration,AWS Step Functions,compute_layer component for orchestration
+compute_layer,event_processing,Amazon EventBridge,compute_layer component for event_processing
+data_layer,primary_database,Amazon DynamoDB,data_layer component for primary_database
+data_layer,relational_data,Amazon RDS Aurora Serverless,data_layer component for relational_data
+data_layer,file_storage,Amazon S3,data_layer component for file_storage
+data_layer,data_warehouse,Amazon Redshift Serverless,data_layer component for data_warehouse
+data_layer,search,Amazon OpenSearch Serverless,data_layer component for search
+integration_layer,message_queuing,Amazon SQS,integration_layer component for message_queuing
+integration_layer,pub_sub,Amazon SNS,integration_layer component for pub_sub
+integration_layer,streaming,Amazon Kinesis,integration_layer component for streaming
+integration_layer,iot_core,AWS IoT Core,integration_layer component for iot_core
+integration_layer,device_management,AWS IoT Device Management,integration_layer component for device_management
+ai_ml_layer,ml_platform,Amazon SageMaker,ai_ml_layer component for ml_platform
+ai_ml_layer,computer_vision,Amazon Rekognition,ai_ml_layer component for computer_vision
+ai_ml_layer,natural_language,Amazon Comprehend,ai_ml_layer component for natural_language
+ai_ml_layer,forecasting,Amazon Forecast,ai_ml_layer component for forecasting
+ai_ml_layer,personalization,Amazon Personalize,ai_ml_layer component for personalization
+monitoring_layer,logging,Amazon CloudWatch,monitoring_layer component for logging
+monitoring_layer,tracing,AWS X-Ray,monitoring_layer component for tracing
+monitoring_layer,monitoring,Amazon CloudWatch Metrics,monitoring_layer component for monitoring
+monitoring_layer,alerting,Amazon SNS,monitoring_layer component for alerting
+frontend,framework,React.js 18 with TypeScript,Frontend technology specification
+frontend,state_management,Redux Toolkit,Frontend technology specification
+frontend,ui_library,Material-UI (MUI) v5,Frontend technology specification
+frontend,charts_visualization,Chart.js / D3.js,Frontend technology specification
+frontend,real_time_updates,WebSocket / Server-Sent Events,Frontend technology specification
+frontend,pwa_features,Service Workers for offline capability,Frontend technology specification
+frontend,testing,Jest + React Testing Library,Frontend technology specification
+backend,runtime,Node.js 18.x / Python 3.11,Backend technology specification
+backend,frameworks,Express.js (Node.js) / FastAPI (Python),Backend technology specification
+backend,orm,Prisma (Node.js) / SQLAlchemy (Python),Backend technology specification
+backend,validation,Joi / Zod (Node.js) / Pydantic (Python),Backend technology specification
+backend,authentication,JWT tokens with AWS Cognito,Backend technology specification
+backend,api_documentation,OpenAPI 3.0 / Swagger,Backend technology specification
+unique_features,ai_powered_insights,Predictive health analytics using ML models,Unique project feature
+unique_features,ai_powered_insights,Anomaly detection in vital signs,Unique project feature
+unique_features,ai_powered_insights,Personalized health recommendations,Unique project feature
+unique_features,ai_powered_insights,Risk assessment algorithms,Unique project feature
+unique_features,iot_integration,Multiple IoT device compatibility,Unique project feature
+unique_features,iot_integration,Real-time data streaming from wearables,Unique project feature
+unique_features,iot_integration,Edge computing for device data preprocessing,Unique project feature
+unique_features,iot_integration,Device fleet management,Unique project feature
+unique_features,healthcare_compliance,HIPAA compliance implementation,Unique project feature
+unique_features,healthcare_compliance,End-to-end encryption,Unique project feature
+unique_features,healthcare_compliance,Audit trails and logging,Unique project feature
+unique_features,healthcare_compliance,Data anonymization techniques,Unique project feature
+unique_features,advanced_features,Multi-tenant architecture for different healthcare providers,Unique project feature
+unique_features,advanced_features,Real-time collaboration tools for healthcare teams,Unique project feature
+unique_features,advanced_features,Integration with Electronic Health Records (EHR) systems,Unique project feature
+unique_features,advanced_features,Telemedicine video calling integration,Unique project feature
+unique_features,advanced_features,Mobile app with offline capabilities,Unique project feature

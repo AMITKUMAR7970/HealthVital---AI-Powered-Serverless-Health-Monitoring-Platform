@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthVital - Patient Health Monitoring Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>HealthVital</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="user-profile">
+                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b8e5?w=40&h=40&fit=crop&crop=face" alt="User Profile" class="profile-image">
+                <span>Dr. Smith</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <button class="btn btn--outline logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item active">
+                    <a href="#dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#vitals" class="nav-link">
+                        <i class="fas fa-heartbeat"></i>
+                        Patient Vitals
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#analytics" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        Analytics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#alerts" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        Alerts
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#devices" class="nav-link">
+                        <i class="fas fa-mobile-alt"></i>
+                        Devices
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="dashboard-section">
+                <div class="section-header">
+                    <h1>Health Monitoring Dashboard</h1>
+                    <p class="section-subtitle">Real-time health metrics and AI-powered insights</p>
+                </div>
+
+                <!-- Patient Info Card -->
+                <div class="patient-info-card card">
+                    <div class="card__body">
+                        <div class="patient-profile">
+                            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b8e5?w=150&h=150&fit=crop&crop=face" alt="Patient Photo" class="patient-photo">
+                            <div class="patient-details">
+                                <h2>Sarah Johnson</h2>
+                                <p class="patient-id">Medical ID: HV-2024-001</p>
+                                <p class="patient-age">Age: 34 years</p>
+                                <div class="emergency-contact">
+                                    <h4>Emergency Contact</h4>
+                                    <p><strong>John Johnson</strong> (Spouse)</p>
+                                    <p><i class="fas fa-phone"></i> (555) 123-4567</p>
+                                </div>
+                            </div>
+                            <div class="patient-medical-info">
+                                <div class="medications">
+                                    <h4>Current Medications</h4>
+                                    <ul id="medications-list">
+                                        <li>Lisinopril 10mg</li>
+                                        <li>Metformin 500mg</li>
+                                        <li>Vitamin D3</li>
+                                    </ul>
+                                </div>
+                                <div class="conditions">
+                                    <h4>Medical Conditions</h4>
+                                    <div class="condition-tags">
+                                        <span class="status status--warning">Hypertension</span>
+                                        <span class="status status--info">Type 2 Diabetes</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vital Signs Cards -->
+                <div class="vitals-grid">
+                    <div class="vital-card card" data-vital="heartRate">
+                        <div class="card__body">
+                            <div class="vital-header">
+                                <div class="vital-icon heart-rate">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                                <div class="vital-info">
+                                    <h3>Heart Rate</h3>
+                                    <div class="vital-value">
+                                        <span class="value" id="heart-rate-value">72</span>
+                                        <span class="unit">BPM</span>
+                                        <span class="trend stable">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mini-chart">
+                                <canvas id="heart-rate-chart" style="position: relative; height: 60px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vital-card card" data-vital="bloodPressure">
+                        <div class="card__body">
+                            <div class="vital-header">
+                                <div class="vital-icon blood-pressure">
+                                    <i class="fas fa-tint"></i>
+                                </div>
+                                <div class="vital-info">
+                                    <h3>Blood Pressure</h3>
+                                    <div class="vital-value">
+                                        <span class="value" id="bp-systolic">125</span>
+                                        <span>/</span>
+                                        <span class="value" id="bp-diastolic">82</span>
+                                        <span class="unit">mmHg</span>
+                                        <span class="trend up">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mini-chart">
+                                <canvas id="blood-pressure-chart" style="position: relative; height: 60px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vital-card card" data-vital="temperature">
+                        <div class="card__body">
+                            <div class="vital-header">
+                                <div class="vital-icon temperature">
+                                    <i class="fas fa-thermometer-half"></i>
+                                </div>
+                                <div class="vital-info">
+                                    <h3>Temperature</h3>
+                                    <div class="vital-value">
+                                        <span class="value" id="temperature-value">98.4</span>
+                                        <span class="unit">°F</span>
+                                        <span class="trend stable">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mini-chart">
+                                <canvas id="temperature-chart" style="position: relative; height: 60px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vital-card card" data-vital="oxygenSaturation">
+                        <div class="card__body">
+                            <div class="vital-header">
+                                <div class="vital-icon oxygen">
+                                    <i class="fas fa-lungs"></i>
+                                </div>
+                                <div class="vital-info">
+                                    <h3>Oxygen Saturation</h3>
+                                    <div class="vital-value">
+                                        <span class="value" id="oxygen-value">98</span>
+                                        <span class="unit">%</span>
+                                        <span class="trend stable">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mini-chart">
+                                <canvas id="oxygen-chart" style="position: relative; height: 60px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Insights Section -->
+                <div class="ai-insights card">
+                    <div class="card__body">
+                        <div class="insights-header">
+                            <h3><i class="fas fa-brain"></i> AI-Powered Health Insights</h3>
+                            <div class="risk-score">
+                                <span class="risk-label">Risk Score:</span>
+                                <span class="risk-value moderate" id="risk-score">65</span>
+                                <span class="risk-level" id="risk-level">Moderate Risk</span>
+                            </div>
+                        </div>
+                        <div class="insights-content">
+                            <div class="recommendations">
+                                <h4>Recommendations</h4>
+                                <ul id="recommendations-list">
+                                    <li>Blood pressure trending higher than usual. Consider reducing sodium intake.</li>
+                                    <li>Great job maintaining consistent heart rate during exercise.</li>
+                                    <li>Sleep patterns show improvement over the last week.</li>
+                                </ul>
+                            </div>
+                            <div class="predictions">
+                                <h4>Health Predictions</h4>
+                                <div class="prediction-items" id="predictions-list">
+                                    <div class="prediction-item">
+                                        <span class="condition">Cardiovascular Risk</span>
+                                        <span class="probability">15%</span>
+                                        <span class="timeframe">6 months</span>
+                                    </div>
+                                    <div class="prediction-item">
+                                        <span class="condition">Diabetes Complications</span>
+                                        <span class="probability">8%</span>
+                                        <span class="timeframe">12 months</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts and Devices Section -->
+                <div class="bottom-section">
+                    <div class="alerts-section card">
+                        <div class="card__body">
+                            <h3><i class="fas fa-exclamation-triangle"></i> Active Alerts</h3>
+                            <div class="alerts-list" id="alerts-list">
+                                <div class="alert-item medium">
+                                    <i class="fas fa-pills"></i>
+                                    <div class="alert-content">
+                                        <p>Time to take Lisinopril</p>
+                                        <small>10 min ago</small>
+                                    </div>
+                                </div>
+                                <div class="alert-item low">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <div class="alert-content">
+                                        <p>Doctor visit tomorrow at 2:00 PM</p>
+                                        <small>1 hour ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="devices-section card">
+                        <div class="card__body">
+                            <h3><i class="fas fa-mobile-alt"></i> Connected Devices</h3>
+                            <div class="devices-list" id="devices-list">
+                                <div class="device-item connected">
+                                    <div class="device-info">
+                                        <i class="fas fa-clock"></i>
+                                        <div>
+                                            <p class="device-name">Apple Watch Series 9</p>
+                                            <small class="device-status">Connected • 2 min ago</small>
+                                        </div>
+                                    </div>
+                                    <div class="device-battery">
+                                        <span class="battery-level">85%</span>
+                                        <div class="battery-indicator">
+                                            <div class="battery-fill" style="width: 85%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="device-item connected">
+                                    <div class="device-info">
+                                        <i class="fas fa-heartbeat"></i>
+                                        <div>
+                                            <p class="device-name">Omron BP Monitor</p>
+                                            <small class="device-status">Connected • 15 min ago</small>
+                                        </div>
+                                    </div>
+                                    <div class="device-battery">
+                                        <span class="battery-level">92%</span>
+                                        <div class="battery-indicator">
+                                            <div class="battery-fill" style="width: 92%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="device-item disconnected">
+                                    <div class="device-info">
+                                        <i class="fas fa-circle"></i>
+                                        <div>
+                                            <p class="device-name">Pulse Oximeter</p>
+                                            <small class="device-status">Disconnected • 2 hours ago</small>
+                                        </div>
+                                    </div>
+                                    <div class="device-battery">
+                                        <span class="battery-level">45%</span>
+                                        <div class="battery-indicator">
+                                            <div class="battery-fill" style="width: 45%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn--primary add-device-btn">
+                                <i class="fas fa-plus"></i>
+                                Add New Device
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Detailed Views -->
+    <div id="vital-detail-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Vital Details</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="chart-container" style="position: relative; height: 300px;">
+                    <canvas id="detailed-chart"></canvas>
+                </div>
+                <div class="chart-controls">
+                    <button class="btn btn--outline period-btn active" data-period="7d">7 Days</button>
+                    <button class="btn btn--outline period-btn" data-period="30d">30 Days</button>
+                    <button class="btn btn--outline period-btn" data-period="3m">3 Months</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HIPAA Compliance Notice -->
+    <div class="hipaa-notice">
+        <i class="fas fa-shield-alt"></i>
+        <span>HIPAA Compliant • Secure Health Data</span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
