@@ -91,7 +91,7 @@ HealthVital follows a **7-layer serverless architecture** pattern:
 
 ## 📱 Demo Application
 
-Experience the HealthVital dashboard: **[Live Demo](https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/85ae395c0e6517dfe11309430a70b18c/cf8cb49d-f452-48b6-a387-2b2f1c11f909/index.html)**
+**[Live Interactive Demo](https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/85ae395c0e6517dfe11309430a70b18c/cf8cb49d-f452-48b6-a387-2b2f1c11f909/index.html)**
 
 ### Demo Features
 - Real-time vital signs monitoring (Heart Rate, Blood Pressure, Temperature, SpO2)
@@ -139,7 +139,7 @@ Experience the HealthVital dashboard: **[Live Demo](https://ppl-ai-code-interpre
    # Copy environment template
    cp .env.example .env
    
-   # Edit configuration
+   # Edit configuration with your AWS settings
    vim .env
    ```
 
@@ -410,21 +410,6 @@ jobs:
 - **Staging**: Pre-production testing
 - **Production**: Main branch deployments with approvals
 
-## 🤝 Contributing
-
-### Development Setup
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-### Code Standards
-- ESLint for JavaScript/TypeScript
-- Prettier for code formatting
-- Pre-commit hooks for quality checks
-- Comprehensive test coverage required
-
 ## 📚 API Documentation
 
 ### Authentication
@@ -437,7 +422,7 @@ curl -X POST https://healthvital-auth.auth.us-east-1.amazoncognito.com/oauth2/to
   -d "grant_type=authorization_code&client_id=CLIENT_ID&code=AUTH_CODE"
 ```
 
-### Endpoints
+### Core Endpoints
 
 #### Patient Management
 ```
@@ -461,6 +446,13 @@ GET    /devices               # List devices
 POST   /devices               # Register new device
 PUT    /devices/{id}          # Update device
 GET    /devices/{id}/data     # Get device data
+```
+
+#### Analytics & AI
+```
+GET    /analytics/risk/{patientId}     # Get risk assessment
+POST   /analytics/predict             # Generate predictions
+GET    /analytics/trends/{patientId}  # Get health trends
 ```
 
 ## 🌐 Multi-Tenant Architecture
@@ -510,9 +502,24 @@ HealthVital supports multiple healthcare organizations:
 - **Stripe**: Payment processing for telehealth
 - **AWS Marketplace**: Subscription management
 
+## 🤝 Contributing
+
+### Development Setup
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+### Code Standards
+- ESLint for JavaScript/TypeScript
+- Prettier for code formatting
+- Pre-commit hooks for quality checks
+- Comprehensive test coverage required
+
 ## 📱 Mobile Application
 
-### React Native App
+### React Native Integration
 ```bash
 # Install React Native CLI
 npm install -g react-native-cli
@@ -553,6 +560,36 @@ npx react-native run-android
 - [ ] GDPR compliance module
 - [ ] Advanced security features
 - [ ] Third-party app ecosystem
+
+## 📊 Project Structure
+
+```
+healthvital-serverless/
+├── frontend/                   # React.js application
+│   ├── src/
+│   │   ├── components/        # Reusable UI components
+│   │   ├── pages/            # Application pages
+│   │   ├── services/         # API services
+│   │   ├── hooks/            # Custom React hooks
+│   │   └── utils/            # Utility functions
+│   ├── public/               # Static assets
+│   └── package.json
+├── backend/
+│   ├── src/
+│   │   ├── patient-processor/    # Patient data Lambda
+│   │   ├── ai-analytics/        # AI/ML processing
+│   │   ├── iot-ingestion/       # IoT data handler
+│   │   └── notifications/       # Alert system
+│   └── shared/
+│       └── libs/               # Shared libraries
+├── infrastructure/
+│   ├── template.yaml          # SAM template
+│   ├── parameters/            # Environment configs
+│   └── scripts/              # Deployment scripts
+├── docs/                     # Documentation
+├── tests/                   # Test suites
+└── README.md
+```
 
 ## 📞 Support & Contact
 
